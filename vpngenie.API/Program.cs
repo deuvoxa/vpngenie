@@ -118,11 +118,11 @@ services.AddHostedService<BotHostedService>();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate();
-}
+using var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+dbContext.Database.Migrate();
+
+var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -139,4 +139,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+logger.LogInformation("vpngenie запущен успешно!");
 app.Run();
+

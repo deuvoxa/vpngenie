@@ -11,18 +11,20 @@ namespace vpngenie.API.Controllers;
 [ApiController]
 public class PaymentController(
     ITelegramBotClient botClient,
-    UserService userService) : ControllerBase
+    UserService userService,
+    ILogger<PaymentController> logger) : ControllerBase
 {
     [HttpPost("webhook")]
     public async Task<IActionResult> PaymentWebhook([FromBody] dynamic requestBody)
     {
         string json = requestBody.ToString();
         var paymentCallback = JsonConvert.DeserializeObject<PaymentNotification>(json);
+        var telegramId = paymentCallback!.Object.Metadata.TelegramId;
         switch (paymentCallback.Event)
         {
             case "payment.succeeded":
                 await SuccessfulPaymentHandle.Execute(botClient, userService, paymentCallback.Object.Amount.Value,
-                    paymentCallback.Object.Metadata.TelegramId, Guid.Parse(paymentCallback.Object.Id));
+                    telegramId, Guid.Parse(paymentCallback.Object.Id));
                 break;
             case "payment.waiting_for_capture":
                 break;
@@ -30,6 +32,8 @@ public class PaymentController(
                 break;
         }
 
+        var user = await userService.GetUserByTelegramIdAsync(telegramId);
+        logger.LogInformation("Пользователь {Username} оплатил подписку.", user!.Username);
         return Ok();
     }
-}
+}  
