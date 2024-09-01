@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* :root {
+    --dark-900: #1a1a2e;
+    --dark-800: #16213e;
+    --neon-yellow: #e8f048;
+  }
+  
+  body {
+    background-color: var(--dark-900);
+    color: white;
+  }
+  
+  .bg-dark-900 {
+    background-color: var(--dark-900);
+  }
+  
+  .bg-dark-800 {
+    background-color: var(--dark-800);
+  }
+  
+  .text-neon-yellow {
+    color: var(--neon-yellow);
+  }
+  
+  .bg-neon-yellow {
+    background-color: var(--neon-yellow);
+  } */
+
+  body {
+    background-color: #f8faff;
+    font-family: 'Helvetica', Arial, sans-serif;
+    color: #333;
+  }
+  
+  /* main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+  } */
+  
+  h1 {
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: #1a1a1a;
+  }
+  
+  p {
+    font-size: 1.2rem;
+    color: #555;
+  }
+  
+  .button-primary {
+    background: linear-gradient(90deg, #2a83f9, #71a4f9);
+    color: #fff;
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    margin-top: 2rem;
+    box-shadow: 0px 4px 15px rgba(0, 123, 255, 0.4);
+    transition: transform 0.3s ease;
+  }
+  
+  .button-primary:hover {
+    transform: scale(1.05);
+  }
+  
+  .illustration {
+    max-width: 100%;
+    height: auto;
+    margin-top: 2rem;
+  }
