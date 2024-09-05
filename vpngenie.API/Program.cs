@@ -141,4 +141,5 @@ app.MapControllers();
 
 logger.LogInformation("vpngenie запущен успешно!");
 app.Run();
+logger.LogInformation("vpngenie остановлен!");
 

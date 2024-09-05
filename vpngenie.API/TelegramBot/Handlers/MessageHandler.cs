@@ -42,7 +42,7 @@ public static class MessageHandler
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            logger.LogError(e.Message);
         }
     }
 

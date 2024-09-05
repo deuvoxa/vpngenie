@@ -13,7 +13,7 @@ public static class ExpectingEmailState
         IConfiguration configuration,
         ITelegramBotClient botClient, User user,
         long chatId, string messageText,
-        ServerService serverService,
+        ILogger<BotService> logger,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(Service.ValidateEmail(messageText)))
@@ -28,12 +28,11 @@ public static class ExpectingEmailState
         }
         else
         {
-            Console.WriteLine($"получил мыло для оплаты: {Service.ValidateEmail(messageText)}");
+            logger.LogInformation("Пользователь {username} указал почту для оплаты.", user.Username);
             var yookassa = new YookassaClient(configuration);
             var paymentUrl = await yookassa.CreatePaymentAsync(100.0m, "Подписка на VPN Genie (30 дней)",
                 "https://t.me/vpngenie_bot", chatId, Service.ValidateEmail(messageText));
-
-            Console.WriteLine(user.MainMessageId);
+            
             await botClient.EditMessageTextAsync(
                 chatId: chatId,
                 messageId: user.MainMessageId,

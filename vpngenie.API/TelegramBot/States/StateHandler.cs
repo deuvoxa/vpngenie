@@ -50,7 +50,7 @@ public static class StateHandler
                     cancellationToken);
                 break;
             case "ExpectingEmail":
-                await ExpectingEmailState.Handle(configuration, botClient, user, chatId, messageText, serverService,
+                await ExpectingEmailState.Handle(configuration, botClient, user, chatId, messageText, logger,
                     cancellationToken);
                 break;
             case "ExpectingPromocode":

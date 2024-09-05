@@ -37,9 +37,9 @@ public static class CommandHandler
             case "/getuser":
                 await GetUser.ExecuteAsync(botClient, message, parameters, userService, ownerId, cancellationToken);
                 break;
-            case "/login":
-                await LoginCommand.ExecuteAsync(botClient, message, parameters, userService, cancellationToken);
-                break;
+            // case "/login":
+            //     await LoginCommand.ExecuteAsync(botClient, message, parameters, userService, cancellationToken);
+            //     break;
             default:
                 await botClient.DeleteMessageAsync(message.Chat, message.MessageId, cancellationToken);
                 break;

@@ -59,7 +59,6 @@ public class UserService(IUserRepository userRepository)
         var metadata = user.Metadata.FirstOrDefault(m => m.Attribute == attribute);
         if (metadata is null)
         {
-            Console.WriteLine($"У пользователся {user.Username} нет метаданных с атрибутом: {attribute}");
             return;
         }
         user.Metadata.Remove(metadata);

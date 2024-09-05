@@ -10,7 +10,7 @@ namespace vpngenie.API.TelegramBot.Commands;
 public static class StartCommand
 {
     public static async Task ExecuteAsync(
-        ITelegramBotClient botClient, Message message, string[] parametrs,
+        ITelegramBotClient botClient, Message message, string[] parameters,
         UserService userService, long ownerId, CancellationToken cancellationToken)
     {
         var chatId = message.Chat.Id;
@@ -40,9 +40,9 @@ public static class StartCommand
         user.MainMessageId = startMessage.MessageId;
         await userService.UpdateUserAsync(user);
 
-        if (!string.IsNullOrEmpty(parametrs.FirstOrDefault()))
+        if (!string.IsNullOrEmpty(parameters.FirstOrDefault()))
         {
-            var referralId = long.Parse(parametrs[0]);
+            var referralId = long.Parse(parameters[0]);
             if (user.TelegramId == referralId) return;
             if (user.Referrer is not null) return;
             await userService.RegisterReferralAsync(user, referralId);
@@ -51,47 +51,5 @@ public static class StartCommand
         {
             await userService.RegisterReferralAsync(user, ownerId);
         }
-    }
-}
-
-public class DeleteHistoryRequest : RequestBase<bool>
-{
-    public ChatId Peer { get; }
-    public int? MaxId { get; set; }
-    public bool JustClear { get; set; }
-    public bool Revoke { get; set; }
-
-    public DeleteHistoryRequest(ChatId peer) : base("messages.deleteHistory")
-    {
-        Peer = peer;
-    }
-
-    protected bool DeserializeResponse(JsonElement data, JsonSerializerOptions options)
-    {
-        return data.GetBoolean();
-    }
-    public override HttpContent ToHttpContent()
-    {
-        var parameters = new Dictionary<string, string>
-        {
-            { "peer", Peer.ToString() }
-        };
-
-        if (MaxId.HasValue)
-        {
-            parameters.Add("max_id", MaxId.Value.ToString());
-        }
-
-        if (JustClear)
-        {
-            parameters.Add("just_clear", JustClear.ToString());
-        }
-
-        if (Revoke)
-        {
-            parameters.Add("revoke", Revoke.ToString());
-        }
-
-        return new FormUrlEncodedContent(parameters);
     }
 }
