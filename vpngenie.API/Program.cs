@@ -12,6 +12,7 @@ using vpngenie.Application.Services;
 using vpngenie.Domain.Interfaces;
 using vpngenie.Infrastructure.Data;
 using vpngenie.Infrastructure.Repositories;
+using XUiLib.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -25,6 +26,14 @@ Log.Logger = new LoggerConfiguration()
 services.AddDbContext<ApplicationDbContext>();
 
 services.AddSerilog();
+
+services.AddVlessLib(config =>
+{
+    // TODO: Данные сюды
+    config.BaseUrl = "";
+    config.Username = "";
+    config.Password = "";
+});
 
 var jwtSettings = configuration.GetSection("Jwt");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);

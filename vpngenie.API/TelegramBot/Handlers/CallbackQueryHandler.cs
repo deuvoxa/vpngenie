@@ -3,6 +3,8 @@ using Telegram.Bot.Types;
 using vpngenie.API.TelegramBot.Handlers.Callbacks;
 using vpngenie.API.TelegramBot.Handlers.User.Promotions;
 using vpngenie.Application.Services;
+using XUiLib.Application.Services;
+using XUiLib.Domain.Interfaces;
 
 namespace vpngenie.API.TelegramBot.Handlers;
 
@@ -18,6 +20,10 @@ public static class CallbackQueryHandler
         var userService = scope.ServiceProvider.GetRequiredService<UserService>();
         var wireGuardService = scope.ServiceProvider.GetRequiredService<WireGuardService>();
         var serverService = scope.ServiceProvider.GetRequiredService<ServerService>();
+        var inboundService = scope.ServiceProvider.GetRequiredService<IInboundService>();
+
+        // TODO: Тут vless протокол
+        var a =await inboundService.GetInboundsAsync();
 
         var data = callbackQuery.Data!;
 
