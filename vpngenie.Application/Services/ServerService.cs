@@ -17,4 +17,7 @@ public class ServerService(IServerRepository serverRepository)
 
     public async Task<Server> GetServerByIdAsync(Guid id)
         => await serverRepository.GetByIdAsync(id);
+
+    public string DecryptPassword(string password)
+        => serverRepository.Decrypt(password);
 }

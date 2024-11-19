@@ -4,18 +4,19 @@ using vpngenie.API.TelegramBot.Handlers.User;
 using vpngenie.API.TelegramBot.Handlers.User.Subscription;
 using vpngenie.Application.Services;
 using vpngenie.Domain.Enums;
+using XUiLib.Domain.Interfaces;
 
 namespace vpngenie.API.TelegramBot.Handlers.Callbacks;
 
 public static class SubscriptionCallbackHandler
 {
     public static async Task HandleSubscriptionCallback(ILogger<BotService> logger, ITelegramBotClient botClient, CallbackQuery callbackQuery,
-        UserService userService, WireGuardService wireGuardService, ServerService serverService, CancellationToken cancellationToken)
+        UserService userService, IVlessServerFactory vlessServerFactory, WireGuardService wireGuardService, ServerService serverService, CancellationToken cancellationToken)
     {
         var data = callbackQuery.Data!.Replace("subscription-", "");
         
-        var chooseRegion = new ChooseRegion(logger, botClient, callbackQuery, userService, wireGuardService, serverService, cancellationToken);
-        var handleSubscription = new HandleSubscriptions(logger, botClient, callbackQuery, userService, wireGuardService, serverService, cancellationToken);
+        var chooseRegion = new ChooseRegion(logger, botClient, callbackQuery, userService, vlessServerFactory, wireGuardService, serverService, cancellationToken);
+        var handleSubscription = new HandleSubscriptions(logger, botClient, callbackQuery, userService, vlessServerFactory, wireGuardService, serverService, cancellationToken);
         
         switch (data)
         {
@@ -31,8 +32,11 @@ public static class SubscriptionCallbackHandler
             case "choose-region":
                 await handleSubscription.ChangeRegion();
                 break;
+            // case "get-config":
+            //     await handleSubscription.GetConfig(Region.Empty);
+            //     break;
             case "get-config":
-                await handleSubscription.GetConfig(Region.Empty);
+                await handleSubscription.GetVlessConfig(Region.Germany);
                 break;
             case "payment-history":
                 await handleSubscription.PaymentHistory();

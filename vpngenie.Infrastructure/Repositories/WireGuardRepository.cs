@@ -31,7 +31,6 @@ public class WireGuardRepository(ApplicationDbContext context, IConfiguration co
             DeleteClient(client, username);
             client.Disconnect();
         });
-
     public async Task<string> ChangeServer(Server oldServer, Server newServer, string username)
         => await Task.Run(() =>
         {

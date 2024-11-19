@@ -2,6 +2,7 @@
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using vpngenie.API.TelegramBot.Handlers;
+using XUiLib.Domain.Interfaces;
 
 namespace vpngenie.API.TelegramBot;
 

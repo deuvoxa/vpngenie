@@ -13,6 +13,7 @@ using vpngenie.Domain.Interfaces;
 using vpngenie.Infrastructure.Data;
 using vpngenie.Infrastructure.Repositories;
 using XUiLib.Infrastructure;
+using XUiLib.Infrastructure.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -26,14 +27,7 @@ Log.Logger = new LoggerConfiguration()
 services.AddDbContext<ApplicationDbContext>();
 
 services.AddSerilog();
-
-services.AddVlessLib(config =>
-{
-    // TODO: Данные сюды
-    config.BaseUrl = "";
-    config.Username = "";
-    config.Password = "";
-});
+services.AddXUiLib();
 
 var jwtSettings = configuration.GetSection("Jwt");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
@@ -65,6 +59,7 @@ services.AddAuthentication(options =>
                 {
                     context.Token = context.Request.Cookies["auth_cookie"];
                 }
+
                 return Task.CompletedTask;
             }
         };
@@ -151,4 +146,3 @@ app.MapControllers();
 logger.LogInformation("vpngenie запущен успешно!");
 app.Run();
 logger.LogInformation("vpngenie остановлен!");
-

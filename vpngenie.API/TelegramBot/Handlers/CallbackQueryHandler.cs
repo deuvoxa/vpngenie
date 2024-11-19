@@ -3,8 +3,8 @@ using Telegram.Bot.Types;
 using vpngenie.API.TelegramBot.Handlers.Callbacks;
 using vpngenie.API.TelegramBot.Handlers.User.Promotions;
 using vpngenie.Application.Services;
-using XUiLib.Application.Services;
 using XUiLib.Domain.Interfaces;
+using XUiLib.Infrastructure.Factories;
 
 namespace vpngenie.API.TelegramBot.Handlers;
 
@@ -20,10 +20,7 @@ public static class CallbackQueryHandler
         var userService = scope.ServiceProvider.GetRequiredService<UserService>();
         var wireGuardService = scope.ServiceProvider.GetRequiredService<WireGuardService>();
         var serverService = scope.ServiceProvider.GetRequiredService<ServerService>();
-        var inboundService = scope.ServiceProvider.GetRequiredService<IInboundService>();
-
-        // TODO: Тут vless протокол
-        var a =await inboundService.GetInboundsAsync();
+        var vlessFactory = scope.ServiceProvider.GetRequiredService<IVlessServerFactory>();
 
         var data = callbackQuery.Data!;
 
@@ -36,7 +33,7 @@ public static class CallbackQueryHandler
         else if (data.StartsWith("subscription-"))
         {
             await SubscriptionCallbackHandler.HandleSubscriptionCallback(logger, botClient,
-                callbackQuery, userService,
+                callbackQuery, userService, vlessFactory,
                 wireGuardService, serverService, cancellationToken);
         }
         else if (data.StartsWith("ticket_") || data.StartsWith("closeTicket_"))

@@ -6,5 +6,7 @@ public enum Region
     England,
     Sweden,
     Turkey,
-    Usa
+    Usa,
+    Germany,
+    France
 }

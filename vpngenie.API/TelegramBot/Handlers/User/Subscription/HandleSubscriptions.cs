@@ -5,6 +5,9 @@ using vpngenie.API.TelegramBot.Keyboards;
 using vpngenie.API.TelegramBot.States;
 using vpngenie.Application.Services;
 using vpngenie.Domain.Enums;
+using XUiLib.Domain.Entities;
+using XUiLib.Domain.Interfaces;
+using XUiLib.Infrastructure.Factories;
 
 namespace vpngenie.API.TelegramBot.Handlers.User.Subscription;
 
@@ -13,6 +16,7 @@ public class HandleSubscriptions(
     ITelegramBotClient botClient,
     CallbackQuery callbackQuery,
     UserService userService,
+    IVlessServerFactory vlessServerFactory,
     WireGuardService wireGuardService,
     ServerService serverService,
     CancellationToken cancellationToken)
@@ -50,13 +54,12 @@ public class HandleSubscriptions(
         var chatId = message.Chat.Id;
 
         var keyboard = new KeyboardBuilder()
-            .WithButtons(new[]
-            {
+            .WithButtons([
                 ("\ud83c\uddec\ud83c\udde7", "subscription-choose-region-england"),
                 ("\ud83c\uddf8\ud83c\uddea", "subscription-choose-region-sweden"),
-                ("\ud83c\uddfa\ud83c\uddf8", "subscription-choose-region-usa"),
+                ("\ud83c\uddfa\ud83c\uddf8", "subscription-choose-region-usa")
                 // ("\ud83c\uddf9\ud83c\uddf7", "subscription-choose-region-turkey"),
-            })
+            ])
             .WithBackToHome()
             .Build();
 
@@ -97,9 +100,32 @@ public class HandleSubscriptions(
             replyMarkup: SubscriptionKeyboard.Home(),
             cancellationToken: cancellationToken);
         
-        logger.LogInformation($"Конфиг удалён.");
+        logger.LogInformation("Конфиг удалён.");
     }
 
+    public async Task GetVlessConfig(Region region)
+    {
+        var user = await userService.GetUserByTelegramIdAsync(callbackQuery.From.Id);
+        var username = user!.Username!;
+        
+        var availableServers = await serverService.GetServersByRegion(region);
+        var server = availableServers.MinBy(s => s.Users.Count);
+        
+        var baseUrl = $"http://{server!.IpAddress}:47346";
+        var decryptPassword = serverService.DecryptPassword(server.Password);
+
+        var vlessServer = vlessServerFactory.CreateServer(baseUrl, server.Username, decryptPassword);
+
+        await vlessServer.AuthenticateAsync();
+
+        var inbounds = await vlessServer.GetInboundsAsync();
+        var inbound = inbounds.First();
+        var client = await vlessServer.AddClientAsync(inbound.Id, username);
+        var config = vlessServer.GenerateConfig(client, inbound, server.IpAddress);
+        client.Enable = false;
+        await vlessServer.UpdateClientAsync(inbound.Id, client);
+        
+    }
     public async Task GetConfig(Region region)
     {
         try
@@ -120,8 +146,6 @@ public class HandleSubscriptions(
                     cancellationToken: cancellationToken);
                 return;
             }
-
-            logger.LogInformation($"Пользователь {user.Username} получает конфиг.");
             
             if (region == Region.Empty && user.Server is not null)
             {
@@ -134,6 +158,8 @@ public class HandleSubscriptions(
                 await ChangeRegion();
                 return;
             }
+            
+            logger.LogInformation($"Пользователь {user.Username} получает конфиг.");
 
             await botClient.EditMessageTextAsync(chatId, messageId: message.MessageId,
                 "Конфиг создаётся... Пожалуйста подождите.", cancellationToken: cancellationToken);
