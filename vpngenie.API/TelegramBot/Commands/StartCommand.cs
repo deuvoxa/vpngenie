@@ -26,7 +26,7 @@ public static class StartCommand
 
         var keyboard = user.Server is null
             ? Keyboards.MainKeyboard.Home
-            : Keyboards.MainKeyboard.HomeWithSettings;
+            : Keyboards.MainKeyboard.HomeWithSubscription;
 
         if (message.From!.Id == ownerId)
             keyboard = Keyboards.MainKeyboard.GetAdminInlineKeyboard;

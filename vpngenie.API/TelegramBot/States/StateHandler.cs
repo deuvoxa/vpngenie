@@ -57,6 +57,14 @@ public static class StateHandler
                 await new ExpectingPromocodeState(logger, botClient, user, promocodeService, chatId, messageText,
                     cancellationToken).Handle();
                 break;
+            case "ExpectingUserTelegramId":
+                await new ExpectingUserTelegramId(logger, botClient, user, userService, chatId, messageText,
+                    cancellationToken).Handle();
+                break;
+            case "ExpectingUsersNewsletter":
+                await new ExpectingUsersNewsletter(logger, botClient, user, userService, chatId, messageText,
+                    cancellationToken).Handle();
+                break;
             default:
                 await SendDefaultErrorMessage(botClient, chatId, user.MainMessageId, cancellationToken);
                 break;

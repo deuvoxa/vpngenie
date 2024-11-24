@@ -30,7 +30,7 @@ public static class ExpectingEmailState
         {
             logger.LogInformation("Пользователь {username} указал почту для оплаты.", user.Username);
             var yookassa = new YookassaClient(configuration);
-            var paymentUrl = await yookassa.CreatePaymentAsync(100.0m, "Подписка на VPN Genie (30 дней)",
+            var paymentUrl = await yookassa.CreatePaymentAsync(129.0m, "Подписка на VPN Genie (31 день)",
                 "https://t.me/vpngenie_bot", chatId, Service.ValidateEmail(messageText));
             
             await botClient.EditMessageTextAsync(

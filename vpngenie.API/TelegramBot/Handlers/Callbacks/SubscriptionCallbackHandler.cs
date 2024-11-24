@@ -32,15 +32,14 @@ public static class SubscriptionCallbackHandler
             case "choose-region":
                 await handleSubscription.ChangeRegion();
                 break;
-            // case "get-config":
-            //     await handleSubscription.GetConfig(Region.Empty);
-            //     break;
             case "get-config":
-                await handleSubscription.GetVlessConfig(Region.Germany);
+                await handleSubscription.GetConfig();
                 break;
             case "payment-history":
                 await handleSubscription.PaymentHistory();
                 break;
+            
+            
             case "choose-region-england":
                 await chooseRegion.England();
                 break;
@@ -49,6 +48,12 @@ public static class SubscriptionCallbackHandler
                 break;
             case "choose-region-usa":
                 await chooseRegion.Usa();
+                break;
+            case "choose-region-germany":
+                await chooseRegion.Germany();
+                break;
+            case "choose-region-france":
+                await chooseRegion.France();
                 break;
         }
         if (data.StartsWith("cancel-invoice"))

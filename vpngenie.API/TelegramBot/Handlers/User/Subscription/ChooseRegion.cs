@@ -34,6 +34,13 @@ public class ChooseRegion(ILogger<BotService> logger, ITelegramBotClient botClie
                 serverService, cancellationToken)
             .GetConfig(Region.Germany);
     }
+    public async Task France()
+    {
+        await new HandleSubscriptions(
+                logger, botClient, callbackQuery, userService, vlessServerFactory, wireGuardService,
+                serverService, cancellationToken)
+            .GetConfig(Region.France);
+    }
     
     public async Task Usa()
     {

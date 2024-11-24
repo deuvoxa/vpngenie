@@ -3,6 +3,8 @@ using Telegram.Bot;
 using vpngenie.API.TelegramBot.Keyboards;
 using vpngenie.Application.Services;
 using vpngenie.Domain.Entities;
+using vpngenie.Domain.Enums;
+using XUiLib.Domain.Interfaces;
 
 namespace vpngenie.API.TelegramBot;
 
@@ -14,6 +16,7 @@ public class BotHostedService(
     private ITelegramBotClient _botClient = null!;
     private UserService _userService = null!;
     private ServerService _serverService = null!;
+    private IVlessServerFactory _vlessServerFactory = null!;
     private WireGuardService _wireGuardService = null!;
     private Timer _timer = null!;
 
@@ -22,6 +25,7 @@ public class BotHostedService(
         var scope = serviceProvider.CreateScope();
         _userService = scope.ServiceProvider.GetRequiredService<UserService>();
         _serverService = scope.ServiceProvider.GetRequiredService<ServerService>();
+        _vlessServerFactory = scope.ServiceProvider.GetRequiredService<IVlessServerFactory>();
         _wireGuardService = scope.ServiceProvider.GetRequiredService<WireGuardService>();
         _botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
         _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromHours(1));
@@ -32,11 +36,9 @@ public class BotHostedService(
     private async void DoWork(object? state)
     {
         var users = await _userService.GetAllUsersAsync();
-        // var usersWithServer = users.Where(u => u?.Server is not null);
         var usersWithoutSubscription = users.Where(u =>
             u?.SubscriptionEndDate <= DateTime.UtcNow && u.SubscriptionEndDate != DateTime.MinValue);
 
-        // Пользователи с подпиской, истекающей через день
         var usersWithEndingSubscription = users.Where(u =>
             u?.SubscriptionEndDate <= DateTime.UtcNow.AddDays(1) && u.SubscriptionEndDate > DateTime.UtcNow);
 
@@ -60,35 +62,54 @@ public class BotHostedService(
 
         foreach (var user in usersWithoutSubscription)
         {
-            logger.LogInformation($"У пользователя {user!.Username} истек срок действия подписки");
-            if (user.Server is not null)
+            Enum.TryParse(user!.Server!.Region, out Region region);
+            if (region is Region.France or Region.Germany)
             {
-                var server = await _serverService.GetServerByIdAsync(user.Server.Id);
-                logger.LogInformation($"Сервер пользователя: {server.IpAddress}.");
-                await _wireGuardService.DeleteClient(server, user.TelegramId.ToString());
+                var baseUrl = $"http://{user.Server.IpAddress}:47346";
+                var decryptPassword = _serverService.DecryptPassword(user.Server.Password);
+
+                var vlessServer = _vlessServerFactory.CreateServer(baseUrl, user.Server.Username, decryptPassword);
+                var inbounds = await vlessServer.GetInboundsAsync();
+                var inbound = inbounds.First();
+            
+                var client = inbound.Clients.SingleOrDefault(c => c.Email == user.Username)!;
+            
+                client.ExpiryTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                await vlessServer.UpdateClientAsync(inbound.Id, client);
             }
             else
             {
-                logger.LogInformation($"Пользователь {user.Username} не подключен к серверу.");
+                logger.LogInformation($"У пользователя {user.Username} истек срок действия подписки");
+                if (user.Server is not null)
+                {
+                    var server = await _serverService.GetServerByIdAsync(user.Server.Id);
+                    logger.LogInformation($"Сервер пользователя: {server.IpAddress}.");
+                    await _wireGuardService.DeleteClient(server, user.TelegramId.ToString());
+                }
+                else
+                {
+                    logger.LogInformation($"Пользователь {user.Username} не подключен к серверу.");
+                }
+
+                var disabledUser = await _userService.GetUserByTelegramIdAsync(user.TelegramId);
+                disabledUser!.SubscriptionEndDate = DateTime.MinValue;
+                disabledUser.Server = null;
+                await _userService.UpdateUserAsync(disabledUser);
             }
 
-            var disabledUser = await _userService.GetUserByTelegramIdAsync(user.TelegramId);
-            disabledUser!.SubscriptionEndDate = DateTime.MinValue;
-            disabledUser.Server = null;
-            await _userService.UpdateUserAsync(disabledUser);
-            await _userService.RemoveMetadata(user.TelegramId, "EndingSubscription");
-            
             try
             {
-                await _botClient.SendTextMessageAsync(disabledUser.TelegramId,
+                await _botClient.SendTextMessageAsync(user.TelegramId,
                     "Срок действия вашей подписки истёк. Конфигурация больше не актуальна!");
             }
             catch (Exception e)
             {
-                logger.LogError(e.Message);
+                logger.LogWarning(e.Message);
             }
 
-            logger.LogInformation($"Отключил пользовтеля {disabledUser.Username} от сервера.");
+            await _userService.RemoveMetadata(user.TelegramId, "EndingSubscription");
+
+            logger.LogInformation($"Отключил пользовтеля {user.Username} от сервера.");
         }
     }
 

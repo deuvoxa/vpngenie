@@ -34,7 +34,7 @@ public class UserController(
         {
         var telegramId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var yookassa = new YookassaClient(configuration);
-        var paymentUrl = await yookassa.CreatePaymentAsync(100.0m, "Подписка на VPN Genie (30 дней)",
+        var paymentUrl = await yookassa.CreatePaymentAsync(129.0m, "Подписка на VPN Genie (31 день)",
             "http:/localhost:3000", long.Parse(telegramId), Service.ValidateEmail(email.Email));
         return Ok(paymentUrl);
     }

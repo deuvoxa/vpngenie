@@ -43,11 +43,11 @@ public class YookassaClient
                 {
                     new
                     {
-                        description = "Подписка (1 мес.)",
+                        description = "Подписка (31 день)",
                         quantity = "1.00",
                         amount = new
                         {
-                            value = "100.00",
+                            value = "129.00",
                             currency = "RUB"
                         },
                         vat_code = 1

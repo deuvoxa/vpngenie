@@ -8,7 +8,7 @@ using vpngenie.Application.Services;
 
 namespace vpngenie.API.TelegramBot.Handlers.Admin;
 
-public class AdminUsersNewsletter(
+public class AdminUsersGetUser(
     ITelegramBotClient botClient,
     CallbackQuery callbackQuery,
     UserService userService,
@@ -16,8 +16,8 @@ public class AdminUsersNewsletter(
 {
     public async Task Handle()
     {
-        UserStates.State[callbackQuery.Message!.Chat.Id] = "ExpectingUsersNewsletter";
-        const string text = "Укажи сообщение для рассылки:";
+        UserStates.State[callbackQuery.Message!.Chat.Id] = "ExpectingUserTelegramId";
+        const string text = "Укажи Id пользователя:";
         
         var keyboard = new KeyboardBuilder().WithButton("Вернуться назад", "admin-users-menu").Build();
         

@@ -21,11 +21,10 @@ public static class SubscriptionKeyboard
         .Build();
 
     public static InlineKeyboardMarkup BackConfig = new KeyboardBuilder()
-        .WithButtons(new[]
-        {
+        .WithButtons([
             ("Сменить регион", "subscription-choose-region"),
             ("Удалить конфиг", "subscription-remove-config")
-        })
+        ])
         .WithBackToSubscription()
         .Build();
 

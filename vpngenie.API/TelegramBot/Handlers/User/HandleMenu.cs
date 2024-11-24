@@ -6,6 +6,7 @@ using Telegram.Bot.Types.Enums;
 using vpngenie.API.TelegramBot.Keyboards;
 using vpngenie.API.TelegramBot.States;
 using vpngenie.Application.Services;
+using vpngenie.Application.Utility;
 
 namespace vpngenie.API.TelegramBot.Handlers.User;
 
@@ -17,12 +18,12 @@ public static class HandleMenu
         var message = callbackQuery.Message!;
         var chatId = message.Chat.Id;
 
-        var user = await userService.GetUserByTelegramIdAsync(callbackQuery.From!.Id);
+        var user = await userService.GetUserByTelegramIdAsync(callbackQuery.From.Id);
         if (user is null) return;
 
-        var keyboard = user.Server is null
-            ? MainKeyboard.Home
-            : MainKeyboard.HomeWithSettings;
+        var keyboard = user.SubscriptionIsActive
+            ? MainKeyboard.HomeWithSubscription
+            : MainKeyboard.Home;
 
         if (callbackQuery.From.Id == ownerId)
             keyboard = MainKeyboard.GetAdminInlineKeyboard;
@@ -57,18 +58,36 @@ public static class HandleMenu
             ? SubscriptionKeyboard.WithSubscription
             : SubscriptionKeyboard.WithoutSubscription;
 
-        var text =
-            $"Ваша подписка активна до {user.SubscriptionEndDate:dd.MM.yyyy}\n" +
-            $"(Закончится {user.SubscriptionEndDate.Humanize()})";
+        var textBuilder = new StringBuilder();
+
+        textBuilder.AppendLine("📋 *Информация о подписке:*");
+        textBuilder.AppendLine();
+        textBuilder.AppendLine($"👤 Пользователь: `{user.Username}`");
+        textBuilder.AppendLine($"📅 Дата окончания: `{user.SubscriptionEndDate:dd.MM.yyyy}`");
+        textBuilder.AppendLine($"⏳ Закончится {user.SubscriptionEndDate.Humanize()}");
+        textBuilder.AppendLine();
+        textBuilder.AppendLine("🌍 *Текущий сервер*:");
+        if (user.Server is not null)
+        {
+            textBuilder.AppendLine($"`{user.Server.IpAddress}` {Utils.GetEmojiByRegion(user.Server.Region)}");
+        }
+        else
+        {
+            textBuilder.AppendLine("`Вы не подключены к серверу`");
+        }
+
+        var text = textBuilder.ToString();
+
+
 
         const string textForUnsubscription = """
                                              Упс! У тебя нет активной подписки. 😔
 
-                                             Не переживай! Всего за _100 рублей в месяц_ ты получишь доступ ко всем функциям бота и сможешь наслаждаться безопасным и быстрым интернетом. 🚀
+                                             Не переживай! Всего за _129 рублей в месяц_ ты получишь доступ ко всем функциям бота и сможешь наслаждаться безопасным и быстрым интернетом. 🚀
 
                                              💳 Нажми *«Активировать подписку»*, чтобы оформить подписку и начать пользоваться прямо сейчас!
                                              """;
-        
+
         await botClient.EditMessageTextAsync(
             chatId: chatId,
             messageId: message.MessageId,
@@ -119,11 +138,10 @@ public static class HandleMenu
         var chatId = message.Chat.Id;
         const string text = "*Настройки*\n\n";
         var keyboard = new KeyboardBuilder()
-            .WithButtons(new[]
-            {
+            .WithButtons([
                 ("Сменить регион", "subscription-choose-region"),
                 ("Удалить конфиг", "subscription-remove-config")
-            })
+            ])
             .WithBackToHome().Build();
 
         await botClient.EditMessageTextAsync(chatId, message.MessageId, text,
@@ -147,7 +165,7 @@ public static class HandleMenu
             chatId: chatId,
             messageId: message.MessageId,
             text:
-            "*VPN Genie* - удобный телеграмм бот, который предлагает надежные и быстрые конфиги для Wireguard. Обеспечьте свою онлайн-безопасность и анонимность с нашим простым в использовании ботом!",
+            "*VPN Genie* - удобный телеграмм бот, который предлагает надежные и быстрые конфиги для таких протоколов как Wireguard, Vless. Обеспечьте свою онлайн-безопасность и анонимность с нашим простым в использовании ботом!",
             replyMarkup: keyboard,
             parseMode: ParseMode.Markdown,
             cancellationToken: cancellationToken);

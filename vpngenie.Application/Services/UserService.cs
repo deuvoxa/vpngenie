@@ -5,7 +5,7 @@ namespace vpngenie.Application.Services;
 
 public class UserService(IUserRepository userRepository)
 {
-    public async Task<List<User?>> GetAllUsersAsync()
+    public async Task<List<User>> GetAllUsersAsync()
         => await userRepository.GetAllUsersAsync();
 
     public async Task<List<User?>> GetLastUsersAsync()

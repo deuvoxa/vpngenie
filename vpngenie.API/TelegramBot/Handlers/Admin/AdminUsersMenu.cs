@@ -17,16 +17,13 @@ public class AdminUsersMenu(
     {
         var users = await userService.GetLastUsersAsync();
         
-        var text = users.Aggregate("*Админ меню (Пользователи)*\n\n",
-            (current, user) => current +
-                               $"_Пользователь:_ [{user.Username}](tg://user?id={user.TelegramId})\n" +
-                               $"_Заданных вопросов:_ `{user.Tickets.Count}`\n" +
-                               $"_Подключён к серверу:_\n`{user.Server?.IpAddress ?? "Не подключён"}`\n" +
-                               $"_Подписка:_ {user.SubscriptionEndDate}\n\n");
+        var text = "*Меню пользователей*";
 
         var keyboard = new KeyboardBuilder()
+            .WithButton("Получить полльзователя", "admin-get-user")
             .WithButton("Рассылка", "admin-newsletter")
             .WithBackAdmin().Build();
+        
         await EditMessage(text, keyboard);
     }
 

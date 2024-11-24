@@ -14,6 +14,11 @@ public static class AdminCallbackHandler
     {
         var data = callbackQuery.Data!.Replace("admin-", "");
 
+        if (data.StartsWith("user-sendmsg-"))
+        {
+            var userId = long.Parse(data.Replace("user-sendmsg-", ""));
+            await AdminUserSendMessage.Main(botClient, callbackQuery, userService, cancellationToken);
+        }
         switch (data)
         {
             case "subscription-get-id":
@@ -48,6 +53,9 @@ public static class AdminCallbackHandler
                 break;
             case "newsletter":
                 await new AdminUsersNewsletter(botClient, callbackQuery, userService, cancellationToken).Handle();
+                break;
+            case "get-user":
+                await new AdminUsersGetUser(botClient, callbackQuery, userService, cancellationToken).Handle();
                 break;
         }
     }

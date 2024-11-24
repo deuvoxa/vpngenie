@@ -11,27 +11,24 @@ public static class AdminKeyboardExtensions
 public static class AdminKeyboard
 {
     public static InlineKeyboardMarkup Home => new KeyboardBuilder()
-        .WithButtons(new[]
-        {
+        .WithButtons([
             ("Подписки", "admin-subscription-menu"),
             ("Открытые тикеты", "admin-tickets-menu")
-        })
-        .WithButtons(new[]
-        {
+        ])
+        .WithButtons([
             ("Пользователи", "admin-users-menu"),
             ("Сервера", "admin-servers-menu")
-        })
+        ])
         .WithButton("Промокоды", "admin-promocodes-menu")
         .WithButton("Вернуться назад", "main-menu").Build();
 
 
     public static InlineKeyboardMarkup Back => new KeyboardBuilder().WithBackAdmin().Build();
 
-    public static InlineKeyboardMarkup AddDays => new KeyboardBuilder().WithButtons(new[]
-    {
+    public static InlineKeyboardMarkup AddDays => new KeyboardBuilder().WithButtons([
         ("да", "admin-subscription-add-days"),
         ("нет", "admin-menu")
-    }).Build();
+    ]).Build();
 
     public static InlineKeyboardMarkup Subscription => new KeyboardBuilder()
         .WithButton("Активировать подписку", "admin-subscription-get-id")

@@ -3,6 +3,7 @@ using Telegram.Bot.Types.Enums;
 using vpngenie.API.TelegramBot.Keyboards;
 using vpngenie.Application.Services;
 using vpngenie.Domain.Entities;
+using vpngenie.Domain.Enums;
 
 namespace vpngenie.API.TelegramBot.Handlers;
 
@@ -32,15 +33,17 @@ public static class SuccessfulPaymentHandle
             .WithButton("Получить конфиг","subscription-get-config")
             .WithBackToSubscription()
             .Build();
+
+        Enum.TryParse(user.Server!.Region, out Region region);
+        if (region is Region.Germany or Region.France)
+        {
+            // TODO: Продление подписки автоматически
+        }
         
         await botClient.EditMessageTextAsync(
             chatId: userId,
             messageId: user.MainMessageId,
-            text: $"""
-                   *Платёж прошёл успешно!*
-
-                   Ваша подписка активна до: {user.SubscriptionEndDate}
-                   """,
+            text: $"*Платёж прошёл успешно!*\nВаша подписка активна до: {user.SubscriptionEndDate}",
             replyMarkup: keyboard,
             parseMode: ParseMode.Markdown);
     }
