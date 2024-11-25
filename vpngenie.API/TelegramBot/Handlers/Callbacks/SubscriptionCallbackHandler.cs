@@ -17,6 +17,16 @@ public static class SubscriptionCallbackHandler
         
         var chooseRegion = new ChooseRegion(logger, botClient, callbackQuery, userService, vlessServerFactory, wireGuardService, serverService, cancellationToken);
         var handleSubscription = new HandleSubscriptions(logger, botClient, callbackQuery, userService, vlessServerFactory, wireGuardService, serverService, cancellationToken);
+
+        if (data.StartsWith("instructions"))
+        {
+            var key = data.Replace("instructions-", "");
+            if (!string.IsNullOrEmpty(key))
+                await handleSubscription.Instruction(key);
+            else
+                await handleSubscription.Instructions();
+            return;
+        }
         
         switch (data)
         {
@@ -38,7 +48,6 @@ public static class SubscriptionCallbackHandler
             case "payment-history":
                 await handleSubscription.PaymentHistory();
                 break;
-            
             
             case "choose-region-england":
                 await chooseRegion.England();

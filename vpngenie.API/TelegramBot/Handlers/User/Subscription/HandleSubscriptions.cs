@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using System.Text;
+using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using vpngenie.API.TelegramBot.Keyboards;
@@ -36,6 +37,25 @@ public class HandleSubscriptions(
         }
     }
 
+    public async Task Instructions()
+    {
+        throw new NotImplementedException();
+    }
+    public async Task Instruction(string key)
+    {
+        switch (key)
+        {
+            case "android":
+                break;
+            case"windows":
+                break;
+            case "ios":
+                break;
+            case "macOs":
+                break;
+        }
+    }
+    
     public async Task Activate()
     {
         var message = CallbackQuery.Message!;
@@ -82,7 +102,7 @@ public class HandleSubscriptions(
             var vlessServer = GetVlessServer(user.Server);
             var inbound = await GetInbound(vlessServer);
 
-            var client = inbound.Clients.SingleOrDefault(c => c.Email == user.Username);
+            var client = inbound.Clients.Single(c => c.Email == user.Username);
 
             client.ExpiryTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             await vlessServer.UpdateClientAsync(inbound.Id, client);
@@ -129,18 +149,40 @@ public class HandleSubscriptions(
 
         var client = inbound.Clients.SingleOrDefault(c => c.Email == user.Username);
 
-        client ??= await vlessServer.AddClientAsync(inbound.Id, username);
+        var textBuilder = new StringBuilder();
 
-        if (client.ExpiryTime < DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+        if (client is null)
         {
-            var subscriptionEndUnixTime = new DateTimeOffset(user.SubscriptionEndDate).ToUnixTimeMilliseconds();
-            client.ExpiryTime = subscriptionEndUnixTime;
+            client = await vlessServer.AddClientAsync(inbound.Id, username);
             client.Enable = true;
-            await vlessServer.UpdateClientAsync(inbound.Id, client);
+
+            textBuilder.AppendLine("\ud83d\ude80 Ура! Вы подключились к серверу впервые. \nВот ваш новый конфиг:");
+        }
+        else
+        {
+            textBuilder.AppendLine("\ud83d\udd04 Мы восстановили ваш прежний конфиг. \nИспользуйте его снова:");
         }
 
+
+        var subscriptionEndUnixTime = new DateTimeOffset(user.SubscriptionEndDate).ToUnixTimeMilliseconds();
+        client.ExpiryTime = subscriptionEndUnixTime;
+
+        await vlessServer.UpdateClientAsync(inbound.Id, client);
         var config = vlessServer.GenerateConfig(client, inbound, server.IpAddress);
-        await EditMessage($"`{config}`", SubscriptionKeyboard.BackConfig);
+
+        textBuilder.AppendLine();
+        textBuilder.AppendLine($"`{config}`");
+        
+        var keyboard = new KeyboardBuilder()
+            .WithButton("Инструкция по установке", "subscription-instructions")
+            .WithButtons([
+                ("Сменить регион", "subscription-choose-region"),
+                ("Удалить конфиг", "subscription-remove-config")
+            ])
+            .WithBackToSubscription()
+            .Build();
+
+        await EditMessage(textBuilder.ToString(), keyboard);
     }
 
     public async Task GetConfig(Region region = Region.Empty)
@@ -188,7 +230,7 @@ public class HandleSubscriptions(
                 logger.LogInformation($"Конфиг для пользователя: {user.Username} успешно создан.");
                 return;
             }
-    
+
             string config;
             if (user.Server is null)
             {

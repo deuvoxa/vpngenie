@@ -47,7 +47,7 @@ public class YookassaClient
                         quantity = "1.00",
                         amount = new
                         {
-                            value = "129.00",
+                            value = amount,
                             currency = "RUB"
                         },
                         vat_code = 1
