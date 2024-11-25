@@ -10,24 +10,32 @@ namespace vpngenie.API.TelegramBot.Handlers.Callbacks;
 
 public static class SubscriptionCallbackHandler
 {
-    public static async Task HandleSubscriptionCallback(ILogger<BotService> logger, ITelegramBotClient botClient, CallbackQuery callbackQuery,
-        UserService userService, IVlessServerFactory vlessServerFactory, WireGuardService wireGuardService, ServerService serverService, CancellationToken cancellationToken)
+    public static async Task HandleSubscriptionCallback(ILogger<BotService> logger, ITelegramBotClient botClient,
+        CallbackQuery callbackQuery,
+        UserService userService, IVlessServerFactory vlessServerFactory, WireGuardService wireGuardService,
+        ServerService serverService, CancellationToken cancellationToken)
     {
         var data = callbackQuery.Data!.Replace("subscription-", "");
-        
-        var chooseRegion = new ChooseRegion(logger, botClient, callbackQuery, userService, vlessServerFactory, wireGuardService, serverService, cancellationToken);
-        var handleSubscription = new HandleSubscriptions(logger, botClient, callbackQuery, userService, vlessServerFactory, wireGuardService, serverService, cancellationToken);
 
-        if (data.StartsWith("instructions"))
+        var chooseRegion = new ChooseRegion(logger, botClient, callbackQuery, userService, vlessServerFactory,
+            wireGuardService, serverService, cancellationToken);
+        var handleSubscription = new HandleSubscriptions(logger, botClient, callbackQuery, userService,
+            vlessServerFactory, wireGuardService, serverService, cancellationToken);
+
+        if (data.StartsWith("instruction-"))
         {
-            var key = data.Replace("instructions-", "");
-            if (!string.IsNullOrEmpty(key))
-                await handleSubscription.Instruction(key);
-            else
-                await handleSubscription.Instructions();
+            var key = data.Replace("instruction-", "");
+            await handleSubscription.Instruction(key);
             return;
         }
-        
+
+        if (data.StartsWith("menu-"))
+        {
+            await botClient.DeleteMessageAsync(callbackQuery.Message!.Chat.Id, int.Parse(data.Replace("menu-", "")),
+                cancellationToken: cancellationToken);
+            await HandleMenu.Subscription(botClient, callbackQuery, userService, cancellationToken);
+        }
+
         switch (data)
         {
             case "menu":
@@ -48,7 +56,10 @@ public static class SubscriptionCallbackHandler
             case "payment-history":
                 await handleSubscription.PaymentHistory();
                 break;
-            
+            case "instructions":
+                await handleSubscription.Instructions();
+                break;
+
             case "choose-region-england":
                 await chooseRegion.England();
                 break;
@@ -65,6 +76,7 @@ public static class SubscriptionCallbackHandler
                 await chooseRegion.France();
                 break;
         }
+
         if (data.StartsWith("cancel-invoice"))
         {
             var cancelInvoiceMessageId = int.Parse(data.Replace("cancel-invoice-", ""));

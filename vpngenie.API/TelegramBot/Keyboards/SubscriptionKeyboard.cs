@@ -7,6 +7,13 @@ public static class SubscriptionKeyboard
     public static KeyboardBuilder WithBackToSubscription(this KeyboardBuilder builder)
         => builder.WithButton("Вернуться назад", "subscription-menu");
 
+    public static KeyboardBuilder WithConfigSettings(this KeyboardBuilder builder)
+        => builder
+        .WithButtons([
+            ("Сменить регион", "subscription-choose-region"),
+            ("Удалить конфиг", "subscription-remove-config")
+        ]);
+
     public static InlineKeyboardMarkup WithSubscription => new KeyboardBuilder()
         .WithButton("Получить конфиг", "subscription-get-config")
         .WithButton("История платежей", "subscription-payment-history")

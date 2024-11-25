@@ -2,6 +2,7 @@
 using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using vpngenie.API.TelegramBot.Keyboards;
 using vpngenie.API.TelegramBot.States;
 using vpngenie.Application.Services;
@@ -37,25 +38,131 @@ public class HandleSubscriptions(
         }
     }
 
-    public async Task Instructions()
-    {
-        throw new NotImplementedException();
-    }
-    public async Task Instruction(string key)
-    {
-        switch (key)
+public async Task Instructions()
+{
+    var message = CallbackQuery.Message!;
+    var chatId = message.Chat.Id;
+    const string text = """
+                        *Инструкция по установке конфигурационного файла*
+
+                        Выберите вашу платформу для получения инструкции:
+                        """;
+
+    var instructionKeyboard = new KeyboardBuilder()
+        .WithButtons(new[]
         {
-            case "android":
-                break;
-            case"windows":
-                break;
-            case "ios":
-                break;
-            case "macOs":
-                break;
-        }
+            ("📱 Android", "subscription-instruction-android"),
+            ("💻 Windows", "subscription-instruction-windows"),
+        })
+        .WithButtons(new[]
+        {
+            ("📱 iOS", "subscription-instruction-ios"),
+            ("💻 macOS", "subscription-instruction-macos"),
+        })
+        .WithButton("Закрыть инструкции", "subscription-instruction-close")
+        .Build();
+
+    var instructionMessage = await BotClient.SendTextMessageAsync(
+        chatId: chatId,
+        text: text,
+        parseMode: ParseMode.Markdown,
+        replyMarkup: instructionKeyboard,
+        replyToMessageId: message.MessageId);
+
+    var keyboardWithOpenInstructions = new KeyboardBuilder()
+        .WithConfigSettings()
+        .WithButton("Вернуться назад", $"subscription-menu-{instructionMessage.MessageId}")
+        .Build();
+
+    await BotClient.EditMessageReplyMarkupAsync(chatId, message.MessageId, keyboardWithOpenInstructions);
+}
+
+public async Task Instruction(string key)
+{
+    var message = CallbackQuery.Message!;
+    var chatId = message.Chat.Id;
+    var user = await userService.GetUserByTelegramIdAsync(CallbackQuery.From.Id);
+
+    if (key == "close")
+    {
+        await BotClient.DeleteMessageAsync(chatId, message.MessageId);
+        var keyboardWithInstructions = new KeyboardBuilder()
+            .WithButton("Инструкция по установке", "subscription-instructions")
+            .WithConfigSettings()
+            .WithButton("Вернуться назад", "subscription-menu")
+            .Build();
+        await BotClient.EditMessageReplyMarkupAsync(chatId, user.MainMessageId, keyboardWithInstructions);
+        return;
     }
-    
+
+    var instructionData = new Dictionary<string, (string VideoId, string Caption)>
+    {
+        ["android"] = ("CgACAgIAAxkBAAIBXmdEokmWM1A_F96uGwhqLFeJv8d3AAJ0XgACvtEpSh-M-RUBJKT0NgQ", """
+                                           1. Установите Hidify!
+                                           - Скачайте приложение с Google Play, установите и запустите его.
+
+                                           2. Добавьте конфиг:
+                                           - Скопируйте текст вашего VLESS-конфига.
+                                           - Нажмите "+" в правом верхнем углу и выберите "Добавить из буфера обмена".
+
+                                           3. Подключитесь!
+                                           - Выберите сервер и нажмите "Подключиться".
+                                           """),
+        ["windows"] = ("CgACAgIAAxkBAAIBXmdEokmWM1A_F96uGwhqLFeJv8d3AAJ0XgACvtEpSh-M-RUBJKT0NgQ", """
+                                           1. Скачайте Hidify с официального сайта.
+                                           - Установите и запустите приложение.
+
+                                           2. Добавьте конфигурацию:
+                                           - Откройте приложение и импортируйте файл конфигурации.
+
+                                           3. Подключитесь!
+                                           - Выберите сервер и активируйте соединение.
+                                           """),
+        ["ios"] = ("CgACAgIAAxkBAAIBXmdEokmWM1A_F96uGwhqLFeJv8d3AAJ0XgACvtEpSh-M-RUBJKT0NgQ", """
+                                   1. Установите Hidify из App Store.
+                                   - Запустите приложение после установки.
+
+                                   2. Импортируйте конфигурацию:
+                                   - Скопируйте VLESS-конфиг и добавьте его через "+".
+
+                                   3. Подключитесь!
+                                   - Выберите сервер и подключитесь.
+                                   """),
+        ["macos"] = ("CgACAgIAAxkBAAIBXmdEokmWM1A_F96uGwhqLFeJv8d3AAJ0XgACvtEpSh-M-RUBJKT0NgQ", """
+                                      1. Установите Hidify на macOS.
+                                      - Загрузите с официального сайта и установите.
+
+                                      2. Импортируйте конфиг:
+                                      - Перейдите в настройки и добавьте сервер.
+
+                                      3. Подключитесь!
+                                      - Выберите сервер и подключитесь.
+                                      """),
+    };
+
+    if (!instructionData.TryGetValue(key, out var data))
+        throw new InvalidOperationException("Invalid instruction key.");
+
+    var updatedKeyboard = new KeyboardBuilder()
+        .WithButtons(instructionData.Keys
+            .Where(k => k != key)
+            .Select(k => (k switch
+            {
+                "android" => "📱 Android",
+                "windows" => "💻 Windows",
+                "ios" => "📱 iOS",
+                "macos" => "💻 macOS",
+                _ => "Unknown"
+            }, $"subscription-instruction-{k}")))
+        .WithButton("Закрыть инструкции", "subscription-instruction-close")
+        .Build();
+
+    await BotClient.EditMessageMediaAsync(
+        chatId: chatId,
+        messageId: message.MessageId,
+        media: new InputMediaVideo(InputFile.FromFileId(data.VideoId)) { Caption = data.Caption },
+        replyMarkup: updatedKeyboard);
+}
     public async Task Activate()
     {
         var message = CallbackQuery.Message!;
@@ -172,7 +279,7 @@ public class HandleSubscriptions(
 
         textBuilder.AppendLine();
         textBuilder.AppendLine($"`{config}`");
-        
+
         var keyboard = new KeyboardBuilder()
             .WithButton("Инструкция по установке", "subscription-instructions")
             .WithButtons([
