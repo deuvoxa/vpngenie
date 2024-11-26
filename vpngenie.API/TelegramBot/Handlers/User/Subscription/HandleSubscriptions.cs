@@ -49,16 +49,14 @@ public async Task Instructions()
                         """;
 
     var instructionKeyboard = new KeyboardBuilder()
-        .WithButtons(new[]
-        {
+        .WithButtons([
             ("📱 Android", "subscription-instruction-android"),
-            ("💻 Windows", "subscription-instruction-windows"),
-        })
-        .WithButtons(new[]
-        {
+            ("💻 Windows", "subscription-instruction-windows")
+        ])
+        .WithButtons([
             ("📱 iOS", "subscription-instruction-ios"),
-            ("💻 macOS", "subscription-instruction-macos"),
-        })
+            ("💻 macOS", "subscription-instruction-macos")
+        ])
         .WithButton("Закрыть инструкции", "subscription-instruction-close")
         .Build();
 
@@ -97,19 +95,19 @@ public async Task Instruction(string key)
 
     var instructionData = new Dictionary<string, (string VideoId, string Caption)>
     {
-        ["android"] = ("CgACAgIAAxkBAAIBXmdEokmWM1A_F96uGwhqLFeJv8d3AAJ0XgACvtEpSh-M-RUBJKT0NgQ", """
-                                           1. Установите Hidify!
+        ["android"] = ("BAACAgIAAxkBAAIBgWdF71b-hc-DctACiMqxmdhSWYUoAAIsXgACmvcxSsijLtyJvF2CNgQ", """
+                                           1. Установите v2rayNG!
                                            - Скачайте приложение с Google Play, установите и запустите его.
 
                                            2. Добавьте конфиг:
                                            - Скопируйте текст вашего VLESS-конфига.
-                                           - Нажмите "+" в правом верхнем углу и выберите "Добавить из буфера обмена".
+                                           - Нажмите "+" в правом верхнем углу и выберите "Импорт из буфера обмена".
 
                                            3. Подключитесь!
-                                           - Выберите сервер и нажмите "Подключиться".
                                            """),
         ["windows"] = ("CgACAgIAAxkBAAIBXmdEokmWM1A_F96uGwhqLFeJv8d3AAJ0XgACvtEpSh-M-RUBJKT0NgQ", """
-                                           1. Скачайте Hidify с официального сайта.
+                                           1. Скачайте Hidify:
+                                           https://github.com/hiddify/hiddify-app/releases/download/v2.0.5/Hiddify-Windows-Setup-x64.exe
                                            - Установите и запустите приложение.
 
                                            2. Добавьте конфигурацию:
@@ -118,26 +116,17 @@ public async Task Instruction(string key)
                                            3. Подключитесь!
                                            - Выберите сервер и активируйте соединение.
                                            """),
-        ["ios"] = ("CgACAgIAAxkBAAIBXmdEokmWM1A_F96uGwhqLFeJv8d3AAJ0XgACvtEpSh-M-RUBJKT0NgQ", """
-                                   1. Установите Hidify из App Store.
+        ["ios"] = ("CgACAgIAAxkBAAIBh2dF89DQbh_TcvlajjjMnVaut9nwAAJrXgACmvcxSkzyaLEcgqRHNgQ", """
+                                   1. Установите Streisand из App Store:
+                                   https://apps.apple.com/ru/app/streisand/id6450534064
                                    - Запустите приложение после установки.
 
                                    2. Импортируйте конфигурацию:
-                                   - Скопируйте VLESS-конфиг и добавьте его через "+".
+                                   - Скопируйте текст вашего VLESS-конфига.
+                                   - Нажмите "+" в правом верхнем углу и выберите "Добавить из буфера".
 
                                    3. Подключитесь!
-                                   - Выберите сервер и подключитесь.
                                    """),
-        ["macos"] = ("CgACAgIAAxkBAAIBXmdEokmWM1A_F96uGwhqLFeJv8d3AAJ0XgACvtEpSh-M-RUBJKT0NgQ", """
-                                      1. Установите Hidify на macOS.
-                                      - Загрузите с официального сайта и установите.
-
-                                      2. Импортируйте конфиг:
-                                      - Перейдите в настройки и добавьте сервер.
-
-                                      3. Подключитесь!
-                                      - Выберите сервер и подключитесь.
-                                      """),
     };
 
     if (!instructionData.TryGetValue(key, out var data))
@@ -151,7 +140,6 @@ public async Task Instruction(string key)
                 "android" => "📱 Android",
                 "windows" => "💻 Windows",
                 "ios" => "📱 iOS",
-                "macos" => "💻 macOS",
                 _ => "Unknown"
             }, $"subscription-instruction-{k}")))
         .WithButton("Закрыть инструкции", "subscription-instruction-close")
